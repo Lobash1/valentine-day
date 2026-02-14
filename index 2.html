@@ -1,0 +1,1252 @@
+<!doctype html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>💌 Для тебе</title>
+  <style>
+    :root{
+      --bg1:#0b0b12;
+      --bg2:#141428;
+      --card:#ffffff0f;
+      --stroke:#ffffff1a;
+      --text:#f5f6ff;
+      --muted:#cfd2ffb3;
+      --soft:#ffffff10;
+      --pink:#ff4d8d;
+      --violet:#7c5cff;
+    }
+    *{box-sizing:border-box}
+
+    body{
+      margin:0;
+      min-height:100vh;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      color:var(--text);
+      background:
+        radial-gradient(900px 500px at 20% 20%, #ff4d8d22, transparent 60%),
+        radial-gradient(900px 500px at 80% 30%, #7c5cff22, transparent 60%),
+        linear-gradient(180deg, var(--bg1), var(--bg2));
+      overflow:auto;
+    }
+
+    .wrap{
+      min-height:100vh;
+      display:grid;
+      place-items:center;
+      padding:24px;
+    }
+
+    .page{display:none; width:min(980px, 100%);}
+    .page.active{display:block;}
+
+    .card{
+      margin:auto;
+      background:var(--card);
+      border:1px solid var(--stroke);
+      border-radius:24px;
+      padding:28px;
+      box-shadow: 0 30px 80px #00000055;
+      backdrop-filter: blur(10px);
+      max-height: calc(100vh - 48px);
+      overflow:auto;
+    }
+
+    /* smaller frame like “Ок, тоді скажи…” */
+    .card.smallFrame{
+      width: min(820px, 100%);
+      padding:24px;
+      border-radius:22px;
+    }
+
+    /* page1: allow heart not to be clipped */
+    .card.noClip{
+      overflow: visible;
+      max-height: none;
+    }
+
+    .center{
+      text-align:center;
+      display:grid;
+      gap:16px;
+      place-items:center;
+    }
+
+    h1,h2{margin:0}
+    .muted{color:var(--muted); font-size:14px; line-height:1.45}
+    .tiny{margin-top:6px;font-size:12px;color:#cfd2ff80}
+    .divider{
+      height:1px; width:100%;
+      background: linear-gradient(90deg, transparent, #ffffff1a, transparent);
+      margin: 4px 0 0;
+    }
+
+    .btns{display:flex; gap:12px; justify-content:center; flex-wrap:wrap}
+    button{
+      border:1px solid var(--stroke);
+      background:#ffffff12;
+      color:var(--text);
+      padding:12px 16px;
+      border-radius:14px;
+      cursor:pointer;
+      font-size:15px;
+      transition: transform .12s ease, background .12s ease, border-color .12s ease, filter .12s ease;
+      user-select:none;
+    }
+    button:hover{transform: translateY(-1px); background:#ffffff18}
+    button:active{transform: translateY(0px) scale(0.98)}
+    .primary{
+      background: linear-gradient(135deg, var(--pink), var(--violet));
+      border-color: transparent;
+    }
+    .primary:hover{filter: brightness(1.05)}
+    .ghost{background:#ffffff0d}
+
+    /* === Mystical CTA button === */
+    .mysteryBtn{
+      position:relative;
+      border-color: transparent;
+      background: linear-gradient(135deg, #ff4d8d, #7c5cff);
+      box-shadow: 0 20px 70px #ff4d8d24, 0 18px 60px #7c5cff18;
+      overflow:hidden;
+      animation: pulseGlow 2.2s ease-in-out infinite;
+    }
+    .mysteryBtn::after{
+      content:"";
+      position:absolute;
+      inset:-40%;
+      background: radial-gradient(circle at 30% 30%, #ffffff55, transparent 40%),
+                  radial-gradient(circle at 70% 60%, #ffffff22, transparent 45%);
+      transform: translateX(-40%) rotate(10deg);
+      animation: shimmer 2.8s ease-in-out infinite;
+      pointer-events:none;
+      opacity:.55;
+    }
+    @keyframes shimmer{
+      0%{transform: translateX(-45%) rotate(10deg); opacity:.35}
+      50%{transform: translateX(10%) rotate(10deg); opacity:.6}
+      100%{transform: translateX(55%) rotate(10deg); opacity:.35}
+    }
+    @keyframes pulseGlow{
+      0%,100%{filter: brightness(1); transform: translateY(0)}
+      50%{filter: brightness(1.08); transform: translateY(-1px)}
+    }
+
+    /* Floating hearts */
+    .heart{
+      position:absolute;
+      font-size:18px;
+      pointer-events:none;
+      animation: floatUp 2.6s ease forwards;
+      filter: drop-shadow(0 8px 20px #ff4d8d33);
+      will-change: transform, opacity;
+    }
+    @keyframes floatUp{
+      0%{transform: translateY(0) scale(0.9); opacity:0}
+      10%{opacity:1}
+      100%{transform: translateY(-160px) scale(1.15); opacity:0}
+    }
+
+    /* PAGE 1 HERO */
+    .hero{
+      width:min(520px, 100%);
+      display:grid;
+      place-items:center;
+      gap:14px;
+      padding:18px 0 0;
+      position:relative;
+      isolation:isolate;
+    }
+
+    .spark{
+      position:absolute;
+      inset:-26px;
+      border-radius:40px;
+      background: radial-gradient(300px 180px at 40% 20%, #ff4d8d1f, transparent 60%),
+                  radial-gradient(300px 180px at 70% 60%, #7c5cff1c, transparent 60%);
+      filter: blur(12px);
+      z-index:-1;
+    }
+
+    /* FIX: heart not clipped + not covering text */
+    .bigHeart{
+      width:min(180px, 48vw);
+      aspect-ratio: 1 / 1;
+      position:relative;
+      transform: rotate(45deg);
+      border-radius:22px;
+      background: radial-gradient(100px 100px at 30% 30%, #ff9ac0, transparent 60%),
+                  linear-gradient(135deg, #ff4d8d, #7c5cff);
+      box-shadow:
+        0 26px 80px #ff4d8d20,
+        0 22px 60px #7c5cff14;
+      animation: floaty 3.8s ease-in-out infinite;
+      margin-top: 2px;
+      margin-bottom: 10px; /* pushes text down a bit */
+    }
+    .bigHeart:before,
+    .bigHeart:after{
+      content:"";
+      position:absolute;
+      width:100%;
+      height:100%;
+      border-radius:50%;
+      background: inherit;
+    }
+    .bigHeart:before{ left:-50%; top:0; }
+    .bigHeart:after{ left:0; top:-50%; }
+
+    @keyframes floaty{
+      0%,100%{ transform: rotate(45deg) translateY(0); }
+      50%{ transform: rotate(45deg) translateY(-8px); }
+    }
+
+    /* Cupid arrow (simple animation, no images) */
+    .arrow{
+      position:absolute;
+      width: 220px;
+      height: 4px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,.25), rgba(255,255,255,.85), rgba(255,255,255,.25), transparent);
+      top: 78px;
+      left: -260px;
+      transform: rotate(-10deg);
+      opacity: .0;
+      animation: arrowFly 2.9s ease-in-out infinite;
+      filter: drop-shadow(0 10px 24px rgba(255,77,141,.25));
+      z-index: 1;
+      pointer-events:none;
+    }
+    .arrow::before{
+      content:"";
+      position:absolute;
+      right:-10px;
+      top:-7px;
+      width: 0;
+      height: 0;
+      border-left: 12px solid rgba(255,255,255,.9);
+      border-top: 9px solid transparent;
+      border-bottom: 9px solid transparent;
+      opacity:.9;
+    }
+    .arrow::after{
+      content:"";
+      position:absolute;
+      left:-14px;
+      top:-6px;
+      width: 14px;
+      height: 14px;
+      border-radius: 4px;
+      background: rgba(255,255,255,.75);
+      transform: rotate(45deg);
+      opacity:.7;
+    }
+    @keyframes arrowFly{
+      0%{ transform: translateX(0) rotate(-10deg); opacity:0; }
+      12%{opacity:.85;}
+      55%{ transform: translateX(620px) rotate(-10deg); opacity:.85; }
+      70%{opacity:.25;}
+      100%{ transform: translateX(820px) rotate(-10deg); opacity:0; }
+    }
+
+    .heroText{
+      text-align:center;
+      display:grid;
+      gap:6px;
+      margin-top: 0;
+    }
+    .heroTitle{
+      font-size:22px;
+      font-weight:800;
+      letter-spacing:.2px;
+    }
+    .heroSub{
+      font-size:14px;
+      color: var(--muted);
+    }
+
+    /* No button flee area */
+    .fleeStage{
+      position:relative;
+      width:min(520px, 100%);
+      height:90px;
+      margin: 0 auto;
+    }
+    #noBtn{
+      position:absolute;
+      left:55%;
+      top:18px;
+      pointer-events:none;
+      cursor:not-allowed;
+      opacity:.95;
+    }
+
+    /* QUIZ */
+    .quizHead{display:flex;flex-direction:column;gap:6px;text-align:center;}
+    .quizTitle{font-size:22px;font-weight:700;}
+    .quizSub{font-size:13px;color:#cfd2ff9a;}
+    .quizBox{
+      margin-top:14px;
+      border:1px solid var(--stroke);
+      background:#ffffff08;
+      border-radius:20px;
+      padding:16px;
+      display:grid;
+      gap:14px;
+      text-align:left;
+    }
+    .q{
+      border:1px solid #ffffff14;
+      background:#00000018;
+      border-radius:18px;
+      padding:14px;
+      display:grid;
+      gap:10px;
+    }
+    .qTitle{font-size:14px;font-weight:600;color:#ffffffde;}
+    .pillRow{display:flex;gap:10px;flex-wrap:wrap}
+    .pill{
+      border:1px solid #ffffff18;
+      background:#ffffff0d;
+      padding:10px 12px;
+      border-radius:999px;
+      font-size:13px;
+      cursor:pointer;
+      user-select:none;
+      transition: transform .12s ease, background .12s ease, border-color .12s ease;
+    }
+    .pill:hover{transform: translateY(-1px); background:#ffffff14}
+    .pill.selected{
+      background: linear-gradient(135deg, #ff4d8d22, #7c5cff22);
+      border-color:#ffffff30;
+      box-shadow: inset 0 0 0 1px #ffffff10;
+    }
+    .quizActions{display:flex;gap:12px;flex-wrap:wrap;justify-content:flex-start;margin-top:12px;}
+    .resultBox{
+      margin-top:12px;
+      border:1px solid #ffffff18;
+      background:#ffffff0a;
+      border-radius:18px;
+      padding:14px;
+      display:none;
+    }
+    .resultBox.show{display:block}
+    .resultTitle{font-weight:700;margin-bottom:6px}
+    .resultText{color:#ffffffd8;line-height:1.45}
+
+    /* GALLERY */
+    .galleryHead{display:flex;flex-direction:column;gap:6px;text-align:left;}
+    .grid{
+      margin-top:10px;
+      display:grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap:14px;
+    }
+    .ph{
+      border:1px solid var(--stroke);
+      background:#ffffff08;
+      border-radius:18px;
+      overflow:hidden;
+      position:relative;
+      aspect-ratio: 3 / 4;
+      box-shadow: inset 0 0 0 1px #ffffff0b;
+      cursor: zoom-in;
+    }
+    .ph img{
+      width:100%;
+      height:100%;
+      object-fit: cover;
+      object-position: center 30%;
+      display:block;
+      filter: saturate(1.02) contrast(1.02);
+      transform: scale(1.01);
+      transition: transform .35s ease, filter .35s ease;
+    }
+    .ph:hover img{
+      transform: scale(1.06);
+      filter: saturate(1.06) contrast(1.06);
+    }
+    .ph .label{
+      position:absolute;
+      left:12px;
+      right:12px;
+      bottom:12px;
+      padding:10px 12px;
+      border-radius:14px;
+      border:1px solid #ffffff1a;
+      background:#0b0b1299;
+      backdrop-filter: blur(8px);
+      font-size:12px;
+      color:#cfd2ffcc;
+      display:flex;
+      align-items:center;
+      gap:8px;
+    }
+
+    @media (max-width: 900px){ .grid{grid-template-columns: repeat(2, 1fr);} }
+    @media (max-width: 520px){ .grid{grid-template-columns: 1fr;} }
+
+    /* LETTER */
+    .letterBody{
+      margin-top:10px;
+      border:1px solid var(--stroke);
+      background:#ffffff08;
+      border-radius:20px;
+      padding:18px;
+      text-align:left;
+      line-height:1.65;
+      color:#ffffffde;
+      max-width: 720px;
+      width: 100%;
+    }
+    .navRow{margin-top:18px;display:flex;justify-content:center;gap:12px;flex-wrap:wrap;}
+
+    /* FINAL: режим "серця всюди" */
+    .finalRainOn .heart{ animation: floatUp 2.3s ease forwards; }
+
+    /* ================= LIGHTBOX ================= */
+    .lb{
+      position:fixed;
+      inset:0;
+      background: rgba(0,0,0,.72);
+      backdrop-filter: blur(10px);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      z-index:9999;
+      padding: 18px;
+    }
+    .lb.show{display:flex;}
+    .lbPanel{
+      width: min(980px, 100%);
+      max-height: calc(100vh - 36px);
+      border-radius: 20px;
+      border: 1px solid #ffffff1a;
+      background: rgba(15,16,32,.65);
+      box-shadow: 0 40px 120px #00000077;
+      overflow:hidden;
+      position:relative;
+    }
+    .lbImgWrap{
+      width:100%;
+      height: min(76vh, 720px);
+      background: radial-gradient(500px 260px at 20% 20%, #ff4d8d1e, transparent 60%),
+                  radial-gradient(500px 260px at 80% 50%, #7c5cff1a, transparent 60%),
+                  rgba(0,0,0,.18);
+      display:grid;
+      place-items:center;
+    }
+    .lbImg{
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+      display:block;
+      transform: scale(.98);
+      opacity: 0;
+      transition: opacity .18s ease, transform .18s ease;
+      user-select:none;
+      -webkit-user-drag:none;
+    }
+    .lb.show .lbImg{
+      opacity:1;
+      transform: scale(1);
+    }
+    .lbBar{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      padding: 12px 14px;
+      border-top: 1px solid #ffffff12;
+      background: rgba(11,11,18,.35);
+    }
+    .lbCap{
+      color:#cfd2ffcc;
+      font-size:13px;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      white-space:nowrap;
+    }
+    .lbBtns{display:flex; gap:10px; align-items:center;}
+    .lbBtn{
+      border:1px solid #ffffff1a;
+      background:#ffffff12;
+      color:#fff;
+      padding:10px 12px;
+      border-radius:14px;
+      cursor:pointer;
+      transition: transform .12s ease, background .12s ease;
+      user-select:none;
+    }
+    .lbBtn:hover{transform: translateY(-1px); background:#ffffff18;}
+    .lbClose{
+      position:absolute;
+      top:12px;
+      right:12px;
+      border:1px solid #ffffff1a;
+      background:#00000055;
+      color:#fff;
+      width:42px;
+      height:42px;
+      border-radius:14px;
+      cursor:pointer;
+      display:grid;
+      place-items:center;
+      font-size:18px;
+      z-index:2;
+    }
+    .lbHint{
+      font-size:12px;
+      color:#cfd2ff99;
+      margin-left:10px;
+    }
+
+    /* Page 6 cupid placeholder */
+    .cupidWrap{
+      border:1px solid var(--stroke);
+      background:#ffffff08;
+      border-radius:22px;
+      padding:16px;
+      display:grid;
+      gap:14px;
+    }
+    .cupidFrame{
+      width: min(760px, 100%);
+      margin: 0 auto;
+      border-radius:22px;
+      border:1px solid #ffffff12;
+      background:
+        radial-gradient(520px 260px at 20% 20%, #ff4d8d1a, transparent 60%),
+        radial-gradient(520px 260px at 80% 50%, #7c5cff16, transparent 60%),
+        rgba(0,0,0,.18);
+      aspect-ratio: 16 / 9;
+      display:grid;
+      place-items:center;
+      overflow:hidden;
+      position:relative;
+    }
+
+    /* ✅ FIX: show photo FULLY (no crop) */
+    .cupidFrame img{
+      width: 40% !important;
+      height: 100% !important;
+      object-fit: contain !important;
+      object-position: center !important;
+      display: block;
+    }
+
+    .cupidHint{
+      color:#cfd2ffb3;
+      font-size:13px;
+      text-align:center;
+      padding:10px 0 0;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- LIGHTBOX (overlay) -->
+  <div class="lb" id="lightbox" aria-hidden="true">
+    <div class="lbPanel" role="dialog" aria-modal="true" aria-label="Перегляд фото">
+      <button class="lbClose" id="lbClose" aria-label="Закрити">✕</button>
+
+      <div class="lbImgWrap" id="lbBg">
+        <img class="lbImg" id="lbImg" alt="Фото" />
+      </div>
+
+      <div class="lbBar">
+        <div class="lbCap" id="lbCap">💗</div>
+        <div class="lbBtns">
+          <button class="lbBtn" id="lbPrev" title="Назад (←)">←</button>
+          <button class="lbBtn" id="lbNext" title="Далі (→)">→</button>
+          <span class="lbHint">Esc — закрити</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="wrap">
+
+    <!-- PAGE 1 -->
+    <section class="page active" id="page1">
+      <div class="card center noClip">
+        <div class="hero" aria-hidden="true">
+          <div class="spark"></div>
+          <div class="arrow"></div>
+          <div class="bigHeart"></div>
+
+          <div class="heroText">
+            <div class="heroTitle">Моя найкраща людина ❤️</div>
+            <div class="heroSub">Я зробив це для тебе. Відкрий і усміхнись :)</div>
+          </div>
+        </div>
+
+        <h2>Будеш моєю валентинкою? 💌</h2>
+        <div class="muted">“Ні” тут є… але воно дуже сором’язливе 😄</div>
+
+        <div class="btns">
+          <button class="primary" id="yesBtn">Так</button>
+        </div>
+
+        <div class="fleeStage" id="fleeStage" aria-label="Поле для кнопки Ні">
+          <button class="ghost" id="noBtn" tabindex="-1" aria-hidden="true">Ні</button>
+        </div>
+
+        <div class="tiny">Підказка: “Ні” тікає навіть швидше, ніж ти встигаєш 😈</div>
+      </div>
+    </section>
+
+    <!-- PAGE 2 (QUIZ) -->
+    <section class="page" id="page2">
+      <div class="card" style="display:grid; gap:12px;">
+        <div class="quizHead">
+          <div class="quizTitle">Квіз “Наскільки ти знаєш нас?” ❤️</div>
+          <div class="quizSub"></div>
+          <div class="divider"></div>
+        </div>
+
+        <div class="quizBox" id="quizBox">
+          <div class="q" data-q="drink">
+            <div class="qTitle">1. Який напій я б вибрав(ла) для нашого побачення?</div>
+            <div class="pillRow">
+              <div class="pill" data-value="coffee">Кава</div>
+              <div class="pill" data-value="tea">Чай</div>
+              <div class="pill" data-value="cocoa">Какао</div>
+              <div class="pill" data-value="sweet">Щось солодке й тепле</div>
+            </div>
+          </div>
+
+          <div class="q" data-q="like">
+            <div class="qTitle">2. Що мені в тобі найбільше подобається?</div>
+            <div class="pillRow">
+              <div class="pill" data-value="smile">Твоя посмішка</div>
+              <div class="pill" data-value="character">Твій характер</div>
+              <div class="pill" data-value="tender">Твоя ніжність</div>
+              <div class="pill" data-value="all">Все разом</div>
+            </div>
+          </div>
+
+          <div class="q" data-q="place">
+            <div class="qTitle">3. Ідеальне місце для нас - це…</div>
+            <div class="pillRow">
+              <div class="pill" data-value="party">Шумна вечірка</div>
+              <div class="pill" data-value="walk">Тиха прогулянка</div>
+              <div class="pill" data-value="cinema">Кіно</div>
+              <div class="pill" data-value="home">Дім і обійми</div>
+            </div>
+          </div>
+
+          <div class="quizActions">
+            <button class="primary" id="showResultBtn">Показати результат</button>
+          </div>
+
+          <div class="resultBox" id="resultBox">
+            <div class="resultTitle" id="resultTitle">Результат</div>
+            <div class="resultText" id="resultText"></div>
+
+            <div class="navRow">
+              <button class="mysteryBtn" id="toGalleryBtn">Відкрити наступне ✨</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="tiny">P.S. Тут немає “правильних” відповідей… але щоб пройти далі - треба вгадати наші 3 🫶</div>
+      </div>
+    </section>
+
+    <!-- PAGE 3 (old look) -->
+    <section class="page" id="page3">
+      <div class="card center smallFrame">
+        <h1 style="font-size:28px;">Ок, тоді скажи… 😌</h1>
+        <div class="muted">Натискай багато разів - і нехай сторінка “вибухає” любов’ю.</div>
+
+        <button class="primary" id="loveBtn">Як сильно ти мене любиш? 💖</button>
+        <div class="muted" id="counter">Натискань: 0</div>
+        <div class="tiny" id="hint2">Після ~25 натискань буде сюрприз 😉</div>
+      </div>
+    </section>
+
+    <!-- PAGE 4 (GALLERY) -->
+    <section class="page" id="page4">
+      <div class="card" style="display:grid; gap:12px;">
+        <div class="galleryHead">
+          <div style="font-size:22px; font-weight:700;">Моя любима Валентинка💋</div>
+          <div class="quizSub"></div>
+          <div class="divider"></div>
+        </div>
+
+        <div class="grid" id="galleryGrid"></div>
+
+        <div class="navRow" style="margin-top:10px;">
+          <button class="mysteryBtn" id="toLetterBtn">Зазирнути в лист ✉️</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- PAGE 5 (LETTER) -->
+    <section class="page" id="page5">
+      <div class="card center" style="gap:14px;">
+        <h2 style="font-size:22px; font-weight:800;">Лист для тебе 💌</h2>
+        <div class="divider" style="max-width:720px;"></div>
+
+        <div class="letterBody" id="letterBody">
+          <div id="letterPreview"></div>
+        </div>
+
+        <div class="navRow">
+          <button class="mysteryBtn" id="toRewardBtn">Відкрити сюрприз 🎁</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- PAGE 6 (SURPRISE / CUPID PHOTO ONLY) -->
+    <section class="page" id="page6">
+      <div class="card" style="display:grid; gap:12px;">
+        <div class="quizHead">
+          <div class="quizTitle">Твій амур😆</div>
+          <div class="quizSub"></div>
+          <div class="divider"></div>
+        </div>
+
+        <div class="cupidWrap">
+          <div class="cupidFrame">
+            <img id="cupidImg" src="7.jpg" alt="Амур"
+                 onerror="this.style.display='none'; this.parentElement.querySelector('.cupidHint').style.display='block';">
+            <div class="cupidHint" style="display:none;">📷 Місце для твого фото “Амура”</div>
+          </div>
+
+          <div class="navRow" style="margin-top:6px;">
+            <button class="mysteryBtn" id="toTimerBtn">Час — скільки ми разом ⏳</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PAGE 7 (TIMER, no date input, smaller frame like page2) -->
+    <section class="page" id="page7">
+      <div class="card center smallFrame" style="gap:12px;">
+        <h1 style="font-size:28px;">Скільки часу ми разом ⏳</h1>
+
+        <div id="timerBig" style="font-size:34px;font-weight:900;margin-top:4px;">
+          0 днів 00:00:00
+        </div>
+
+        <div class="muted" style="margin-top:2px;">день, коли ми стали парою 🙂</div>
+
+        <div class="navRow" style="margin-top:10px;">
+          <button class="mysteryBtn" id="toFinalBtn">Останній крок ✨</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- PAGE 8 (FINAL + MUSIC), smaller frame like page2 -->
+    <section class="page" id="page8">
+      <div class="card center smallFrame">
+        <h1 style="font-size:28px;">Фінал 💞</h1>
+        <div class="muted">Натисни “Увімкнути” - і нехай це буде наш маленький момент.</div>
+
+        <div class="btns">
+          <button class="primary" id="musicBtn">Увімкнути музику 🎵</button>
+          <button class="ghost" id="moreHeartsBtn">Ще сердечок 💗</button>
+        </div>
+
+        <div class="tiny">Якщо музика не стартує — натисни кнопку ще раз (деякі браузери так хочуть 😉).</div>
+
+        <audio id="bgMusic" preload="auto" loop playsinline>
+          <source src="ariana.mp3" type="audio/mpeg" />
+        </audio>
+      </div>
+    </section>
+
+  </div>
+
+  <script>
+    /* ---------- page switcher ---------- */
+    const pageIds = ["page1","page2","page3","page4","page5","page6","page7","page8"];
+    const pages = pageIds.map(id => document.getElementById(id));
+
+    function showPage(index){
+      pages.forEach(p => p.classList.remove("active"));
+      pages[index].classList.add("active");
+
+      const card = pages[index].querySelector(".card");
+      if(card) card.scrollTop = 0;
+      window.scrollTo({top:0, behavior:"instant"});
+
+      if(pageIds[index] === "page8"){
+        startFinalHeartStorm();
+      }
+    }
+
+    /* ---------- hearts helpers ---------- */
+    function randomBetween(a,b){ return a + Math.random()*(b-a); }
+
+    function spawnHeartAt(x, y, size){
+      const el = document.createElement("div");
+      el.className = "heart";
+      el.textContent = Math.random() < 0.5 ? "💗" : (Math.random() < 0.5 ? "💖" : "💘");
+      el.style.left = x + "px";
+      el.style.top  = y + "px";
+      el.style.fontSize = (size ?? randomBetween(16, 26)) + "px";
+      el.style.transform = `translateY(0) rotate(${randomBetween(-15,15)}deg)`;
+      document.body.appendChild(el);
+      setTimeout(()=> el.remove(), 2700);
+    }
+
+    function spawnHeart(){
+      const x = randomBetween(10, window.innerWidth - 30);
+      const y = randomBetween(window.innerHeight * 0.55, window.innerHeight - 40);
+      spawnHeartAt(x,y);
+    }
+
+    function sparkleHearts(n){
+      for(let i=0;i<n;i++){
+        setTimeout(spawnHeart, i*40);
+      }
+    }
+
+    /* ---------- PAGE 1: "No" runs away ---------- */
+    const fleeStage = document.getElementById("fleeStage");
+    const noBtn = document.getElementById("noBtn");
+    const yesBtn = document.getElementById("yesBtn");
+
+    function clamp(v, min, max){ return Math.max(min, Math.min(max, v)); }
+
+    function initNoBtn(){
+      noBtn.style.left = Math.round(noBtn.offsetLeft) + "px";
+      noBtn.style.top  = Math.round(noBtn.offsetTop) + "px";
+    }
+
+    function moveNoButtonAway(cursorX, cursorY){
+      const stageRect = fleeStage.getBoundingClientRect();
+      const btnRect = noBtn.getBoundingClientRect();
+
+      const bx = (btnRect.left + btnRect.right)/2;
+      const by = (btnRect.top + btnRect.bottom)/2;
+
+      const dx = bx - cursorX;
+      const dy = by - cursorY;
+      const len = Math.max(1, Math.hypot(dx, dy));
+      const ux = dx / len;
+      const uy = dy / len;
+
+      const step = 160;
+      let leftPx = noBtn.offsetLeft;
+      let topPx  = noBtn.offsetTop;
+
+      let nx = leftPx + ux * step;
+      let ny = topPx + uy * step;
+
+      const maxX = stageRect.width - noBtn.offsetWidth;
+      const maxY = stageRect.height - noBtn.offsetHeight;
+
+      nx += randomBetween(-32, 32);
+      ny += randomBetween(-20, 20);
+
+      nx = clamp(nx, 0, maxX);
+      ny = clamp(ny, 0, maxY);
+
+      noBtn.style.left = nx + "px";
+      noBtn.style.top  = ny + "px";
+    }
+
+    window.addEventListener("load", initNoBtn);
+
+    fleeStage.addEventListener("mousemove", (e)=>{
+      const btnRect = noBtn.getBoundingClientRect();
+      const cx = (btnRect.left + btnRect.right)/2;
+      const cy = (btnRect.top + btnRect.bottom)/2;
+      const dist = Math.hypot(cx - e.clientX, cy - e.clientY);
+
+      if(dist < 170){
+        moveNoButtonAway(e.clientX, e.clientY);
+      }
+    });
+
+    fleeStage.addEventListener("touchstart", (e)=>{
+      const t = e.touches[0];
+      if(!t) return;
+      moveNoButtonAway(t.clientX, t.clientY);
+    }, {passive:true});
+
+    // PAGE1 -> PAGE2 (QUIZ)
+    yesBtn.addEventListener("click", ()=>{
+      sparkleHearts(14);
+      showPage(1); // index 1 => page2
+    });
+
+    /* ---------- PAGE 3 (old look): clicker ---------- */
+    const loveBtn = document.getElementById("loveBtn");
+    const counter = document.getElementById("counter");
+    let clicks = 0;
+    const target = 25;
+
+    loveBtn.addEventListener("click", ()=>{
+      clicks++;
+      counter.textContent = "Натискань: " + clicks;
+      const burst = Math.min(1 + Math.floor(clicks/4), 10);
+      sparkleHearts(burst);
+
+      if(clicks >= target){
+        sparkleHearts(30);
+        setTimeout(()=> showPage(3), 600); // ✅ index 3 => page4 (Gallery)
+      }
+    });
+
+    /* ---------- PAGE 2: QUIZ ---------- */
+    const quizBox = document.getElementById("quizBox");
+    const resultBox = document.getElementById("resultBox");
+    const resultTitle = document.getElementById("resultTitle");
+    const resultText = document.getElementById("resultText");
+
+    const answers = { drink:null, like:null, place:null };
+
+    function selectPill(qKey, pillEl){
+      const qEl = pillEl.closest(".q");
+      qEl.querySelectorAll(".pill").forEach(p => p.classList.remove("selected"));
+      pillEl.classList.add("selected");
+      answers[qKey] = pillEl.dataset.value;
+    }
+
+    quizBox.addEventListener("click", (e)=>{
+      const pill = e.target.closest(".pill");
+      if(!pill) return;
+      const qEl = pill.closest(".q");
+      const qKey = qEl.dataset.q;
+      selectPill(qKey, pill);
+      resultBox.classList.remove("show");
+    });
+
+    function allAnswered(){
+      return !!answers.drink && !!answers.like && !!answers.place;
+    }
+
+    function buildResult(){
+      let vibe = 0;
+
+      if(answers.place === "home") vibe += 3;
+      if(answers.place === "walk") vibe += 2;
+      if(answers.place === "cinema") vibe += 1;
+
+      if(answers.like === "all") vibe += 3;
+      if(answers.like === "tender") vibe += 2;
+      if(answers.like === "smile") vibe += 1;
+
+      if(answers.drink === "sweet") vibe += 2;
+      if(answers.drink === "cocoa") vibe += 1;
+
+      if(vibe >= 7){
+        resultTitle.textContent = "Результат: “Ми - одна команда” 💞";
+        resultText.textContent = "Ти відчуваєш нас дуже тонко. У тебе про любов не гучні слова, а теплі дрібниці: обійми, погляд, турбота. " +
+          "І найкраще - що це взаємно. Я поруч. Сьогодні, завтра і завжди.";
+      } else if(vibe >= 4){
+        resultTitle.textContent = "Результат: “Ніжність + сміх” 💗";
+        resultText.textContent =
+          "Ти добре знаєш, що робить нас щасливими: прості моменти, легкість і наші маленькі традиції. " +
+          "Я люблю, як ти вмієш робити звичайний день особливим. Ти — мій затишок.";
+      } else {
+        resultTitle.textContent = "Результат: “Головне — ми” 💘";
+        resultText.textContent =
+          "Навіть якщо відповіді різні — це не про “правильно/неправильно”. Це про те, що ми відкриваємо одне одного щоразу заново. " +
+          "А я хочу відкривати тебе все життя 🙂";
+      }
+    }
+
+    document.getElementById("showResultBtn").addEventListener("click", ()=>{
+      if(!allAnswered()){
+        sparkleHearts(10);
+        alert("Вибери відповіді у всіх трьох питаннях 🙂");
+        return;
+      }
+      buildResult();
+      resultBox.classList.add("show");
+      sparkleHearts(14);
+    });
+
+    const CORRECT = { drink:"sweet", like:"all", place:"home" };
+    function isCorrect(){
+      return answers.drink === CORRECT.drink &&
+             answers.like  === CORRECT.like &&
+             answers.place === CORRECT.place;
+    }
+
+    // QUIZ -> PAGE3 (old look)
+    document.getElementById("toGalleryBtn").addEventListener("click", ()=>{
+      if(!allAnswered()){
+        sparkleHearts(12);
+        alert("Спочатку заповни всі 3 відповіді 🙂");
+        return;
+      }
+      if(!isCorrect()){
+        sparkleHearts(18);
+        alert("Майже… але ні 😈 Спробуй ще раз — вгадай НАШІ 3 відповіді 💗");
+        return;
+      }
+      sparkleHearts(22);
+      showPage(2); // ✅ index 2 => page3 (old look)
+    });
+
+    /* ---------- PAGE 4: GALLERY + LIGHTBOX ---------- */
+    const galleryGrid = document.getElementById("galleryGrid");
+
+    const photos = [
+      { label:"❤️", src:"1.jpeg" },
+      { label:"✨", src:"2.jpeg" },
+      { label:"💗", src:"3.jpeg" },
+      { label:"🌸", src:"4.jpeg" },
+      { label:"☀️", src:"5.jpeg" },
+      { label:"😴", src:"6.jpeg" }
+    ];
+
+    const lightbox = document.getElementById("lightbox");
+    const lbImg = document.getElementById("lbImg");
+    const lbCap = document.getElementById("lbCap");
+    const lbClose = document.getElementById("lbClose");
+    const lbPrev = document.getElementById("lbPrev");
+    const lbNext = document.getElementById("lbNext");
+    const lbBg = document.getElementById("lbBg");
+
+    let lbIndex = 0;
+
+    function openLightbox(index){
+      lbIndex = index;
+      const p = photos[lbIndex];
+      lbImg.src = p.src;
+      lbCap.textContent = p.label ? `Момент ${lbIndex+1} ${p.label}` : `Момент ${lbIndex+1} 💗`;
+
+      lightbox.classList.add("show");
+      lightbox.setAttribute("aria-hidden","false");
+      document.body.style.overflow = "hidden";
+
+      sparkleHearts(10);
+    }
+
+    function closeLightbox(){
+      lightbox.classList.remove("show");
+      lightbox.setAttribute("aria-hidden","true");
+      document.body.style.overflow = "auto";
+    }
+
+    function prevLightbox(){
+      lbIndex = (lbIndex - 1 + photos.length) % photos.length;
+      const p = photos[lbIndex];
+      lbImg.src = p.src;
+      lbCap.textContent = p.label ? `Момент ${lbIndex+1} ${p.label}` : `Момент ${lbIndex+1} 💗`;
+    }
+
+    function nextLightbox(){
+      lbIndex = (lbIndex + 1) % photos.length;
+      const p = photos[lbIndex];
+      lbImg.src = p.src;
+      lbCap.textContent = p.label ? `Момент ${lbIndex+1} ${p.label}` : `Момент ${lbIndex+1} 💗`;
+    }
+
+    lbClose.addEventListener("click", closeLightbox);
+
+    lightbox.addEventListener("click", (e)=>{
+      if(e.target === lightbox) closeLightbox();
+    });
+
+    lbBg.addEventListener("click", (e)=>{
+      if(e.target !== lbImg) closeLightbox();
+    });
+
+    lbPrev.addEventListener("click", (e)=>{ e.stopPropagation(); prevLightbox(); });
+    lbNext.addEventListener("click", (e)=>{ e.stopPropagation(); nextLightbox(); });
+
+    window.addEventListener("keydown", (e)=>{
+      if(!lightbox.classList.contains("show")) return;
+      if(e.key === "Escape") closeLightbox();
+      if(e.key === "ArrowLeft") prevLightbox();
+      if(e.key === "ArrowRight") nextLightbox();
+    });
+
+    let touchX = null;
+    lightbox.addEventListener("touchstart", (e)=>{
+      const t = e.touches?.[0];
+      if(!t) return;
+      touchX = t.clientX;
+    }, {passive:true});
+    lightbox.addEventListener("touchend", (e)=>{
+      if(touchX == null) return;
+      const t = e.changedTouches?.[0];
+      if(!t) return;
+      const dx = t.clientX - touchX;
+      touchX = null;
+
+      if(Math.abs(dx) > 55){
+        if(dx > 0) prevLightbox();
+        else nextLightbox();
+      }
+    }, {passive:true});
+
+    function renderGallery(){
+      galleryGrid.innerHTML = "";
+      photos.forEach((p, idx)=>{
+        const item = document.createElement("div");
+        item.className = "ph";
+        item.setAttribute("role","button");
+        item.setAttribute("tabindex","0");
+        item.setAttribute("aria-label","Відкрити фото");
+
+        const img = document.createElement("img");
+        img.src = p.src;
+        img.alt = "photo";
+
+        const label = document.createElement("div");
+        label.className = "label";
+        label.textContent = p.label || "💗";
+
+        item.appendChild(img);
+        item.appendChild(label);
+        galleryGrid.appendChild(item);
+
+        item.addEventListener("click", ()=> openLightbox(idx));
+        item.addEventListener("keydown", (e)=>{
+          if(e.key === "Enter" || e.key === " "){
+            e.preventDefault();
+            openLightbox(idx);
+          }
+        });
+      });
+    }
+    renderGallery();
+
+    document.getElementById("toLetterBtn").addEventListener("click", ()=>{
+      sparkleHearts(16);
+      showPage(4); // index 4 => page5 (Letter)
+    });
+
+    /* ---------- PAGE 5: LETTER ---------- */
+    const letterPreview = document.getElementById("letterPreview");
+
+    const defaultLetter =
+`Я люблю твою ніжність і твою силу. Люблю, як ти вмієш світитися зсередини, навіть коли втомилась.Люблю твою посмішку - вона повертає мене в “домівку”. Дякую, що ти є. Я хочу берегти тебе - словами, діями і увагою. Сьогодні, завтра і завжди. 
+
+P.S. Якщо ти це читаєш - значить, я знову закохуюсь у тебе прямо зараз.`;
+
+    function escapeHtml(str){
+      return str.replace(/[&<>"']/g, (m)=>({
+        "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+      }[m]));
+    }
+
+    function renderLetter(text){
+      const parts = text.split(/\n\s*\n/g).map(s => s.trim()).filter(Boolean);
+      letterPreview.innerHTML = parts
+        .map(p => `<p style="margin:0 0 12px;">${escapeHtml(p).replace(/\n/g,"<br/>")}</p>`)
+        .join("");
+    }
+    renderLetter(defaultLetter);
+
+    document.getElementById("toRewardBtn").addEventListener("click", ()=>{
+      sparkleHearts(18);
+      showPage(5); // index 5 => page6 (Cupid)
+    });
+
+    /* ---------- PAGE 6 ---------- */
+    document.getElementById("toTimerBtn").addEventListener("click", ()=>{
+      sparkleHearts(16);
+      showPage(6); // index 6 => page7 (Timer)
+    });
+
+    /* ---------- PAGE 7: timer ---------- */
+    const timerBig = document.getElementById("timerBig");
+
+    function pad(n){ return String(n).padStart(2,"0"); }
+
+    function formatDiff(ms){
+      const sec = Math.floor(ms/1000);
+      const days = Math.floor(sec / 86400);
+      const h = Math.floor((sec % 86400) / 3600);
+      const m = Math.floor((sec % 3600) / 60);
+      const s = sec % 60;
+      return `${days} днів ${pad(h)}:${pad(m)}:${pad(s)}`;
+    }
+
+    let sinceMs = null;
+
+    function tickTimer(){
+      if(!sinceMs) return;
+      const diff = Math.max(0, Date.now() - sinceMs);
+      timerBig.textContent = formatDiff(diff);
+    }
+
+    function loadSince(){
+      const DEFAULT_SINCE = new Date("2018-10-06T00:00:00").getTime();
+      const saved = localStorage.getItem("love_since");
+      sinceMs = saved ? Number(saved) : DEFAULT_SINCE;
+      if(!saved) localStorage.setItem("love_since", String(DEFAULT_SINCE));
+    }
+
+    loadSince();
+    setInterval(tickTimer, 1000);
+    tickTimer();
+
+    document.getElementById("toFinalBtn").addEventListener("click", ()=>{
+      sparkleHearts(18);
+      showPage(7); // index 7 => page8 (Final)
+    });
+
+    /* ---------- PAGE 8: music + hearts storm ---------- */
+    const bgMusic = document.getElementById("bgMusic");
+    const musicBtn = document.getElementById("musicBtn");
+    let musicOn = false;
+
+    if (bgMusic) bgMusic.volume = 0.35;
+
+    musicBtn.addEventListener("click", async ()=>{
+      try{
+        bgMusic.load();
+        if(!musicOn){
+          bgMusic.muted = false;
+          const p = bgMusic.play();
+          if(p && typeof p.then === "function") await p;
+          musicOn = true;
+          musicBtn.textContent = "Вимкнути музику 🔇";
+          sparkleHearts(14);
+        } else {
+          bgMusic.pause();
+          musicOn = false;
+          musicBtn.textContent = "Увімкнути музику 🎵";
+        }
+      }catch(e){
+        console.error("Music play error:", e);
+        alert("Не вдалося запустити музику 😕 Перевір, що ariana.mp3 лежить поруч з index.html і сайт відкритий через http:// (Live Server).");
+      }
+    });
+
+    document.getElementById("moreHeartsBtn").addEventListener("click", ()=> sparkleHearts(40));
+
+    let stormTimer = null;
+    function startFinalHeartStorm(){
+      document.body.classList.add("finalRainOn");
+      if(stormTimer) clearInterval(stormTimer);
+
+      const durationMs = 10000;
+      const start = Date.now();
+
+      stormTimer = setInterval(()=>{
+        if(Date.now() - start > durationMs){
+          clearInterval(stormTimer);
+          stormTimer = null;
+          return;
+        }
+
+        const w = window.innerWidth;
+        const h = window.innerHeight;
+
+        for(let i=0;i<14;i++){
+          const side = Math.floor(Math.random()*4);
+          let x,y;
+          if(side === 0){ x = randomBetween(10, w-30); y = h - randomBetween(10, 40); }
+          if(side === 1){ x = randomBetween(10, w-30); y = randomBetween(10, 40); }
+          if(side === 2){ x = randomBetween(10, 40); y = randomBetween(h*0.35, h-40); }
+          if(side === 3){ x = w - randomBetween(30, 60); y = randomBetween(h*0.35, h-40); }
+          spawnHeartAt(x,y, randomBetween(18, 30));
+        }
+      }, 160);
+    }
+  </script>
+</body>
+</html>
